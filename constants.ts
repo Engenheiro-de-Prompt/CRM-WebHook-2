@@ -1,12 +1,24 @@
 
-import { Status, Priority } from './types';
+import { TaskStatus, TaskPriority } from './types';
 
-export const STATUSES: Status[] = [Status.ToDo, Status.InProgress, Status.Done];
-export const PRIORITIES: Priority[] = [Priority.Low, Priority.Medium, Priority.High, Priority.Urgent];
+export const STATUSES: TaskStatus[] = ['backlog', 'doing', 'blocked', 'done'];
+export const PRIORITIES: TaskPriority[] = ['low', 'med', 'high'];
 
-export const PRIORITY_COLORS: { [key in Priority]: string } = {
-  [Priority.Low]: 'bg-green-500',
-  [Priority.Medium]: 'bg-yellow-500',
-  [Priority.High]: 'bg-orange-500',
-  [Priority.Urgent]: 'bg-red-600',
+export const STATUS_LABELS: { [key in TaskStatus]: string } = {
+  backlog: 'Backlog',
+  doing: 'Em Progresso',
+  blocked: 'Bloqueado',
+  done: 'Concluído',
+};
+
+export const PRIORITY_LABELS: { [key in TaskPriority]: string } = {
+  low: 'Baixa',
+  med: 'Média',
+  high: 'Alta',
+};
+
+export const PRIORITY_COLORS: { [key in TaskPriority]: string } = {
+  low: 'bg-green-500',
+  med: 'bg-blue-500',
+  high: 'bg-red-500',
 };

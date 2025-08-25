@@ -1,58 +1,49 @@
-import { Task } from '../types';
+import { IWebhookEvent } from '../types';
 
-// Envia uma tarefa para o webhook do Google Apps Script usando um método GET
-// que é mais compatível com contornos de CORS em Web Apps do Google Script.
-export const postTaskToSheet = async (
+/**
+ * Posts an event to the specified webhook URL.
+ * Follows the append-only contract defined in the product specification.
+ *
+ * @param webhookUrl The URL of the Google Apps Script webhook.
+ * @param event The event object to send.
+ * @returns A promise that resolves to the fetch response.
+ */
+export const postEventToWebhook = async (
   webhookUrl: string,
-  task: Task,
+  event: IWebhookEvent
 ): Promise<{ status: number; body: string }> => {
-  const payload: Record<string, any> = {
-    id: task.id,
-    title: task.title,
-    description: task.description,
-    status: task.status,
-    priority: task.priority,
-    tags: task.tags.join(', '),
-    timeSpent_seconds: task.timeSpent,
-    createdAt: task.createdAt,
-    updatedAt: task.updatedAt,
-  };
 
-  task.customFields.forEach((field) => {
-    if (field.key.trim()) {
-      payload[`custom_${field.key.trim().replace(/\s+/g, '_')}`] = field.value;
-    }
-  });
-
-  // Constrói a URL com os parâmetros da tarefa
-  const url = new URL(webhookUrl);
-  Object.entries(payload).forEach(([key, value]) => {
-    // Limita o tamanho da descrição para evitar URLs muito longas
-    if (key === 'description' && String(value).length > 500) {
-      url.searchParams.append(key, String(value).substring(0, 500) + '...');
-    } else {
-      url.searchParams.append(key, String(value));
-    }
-  });
-
-  console.log('[webhook] Enviando tarefa via GET para:', url.toString());
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    // Early exit if the browser reports being offline.
+    // This helps prevent unnecessary failed network requests.
+    return Promise.reject(new Error('Offline: Não foi possível enviar o evento.'));
+  }
 
   try {
-    // Usa 'no-cors' pois o Google Script não retorna os headers de CORS corretos,
-    // mas o GET request com parâmetros na URL geralmente é processado com sucesso.
-    await fetch(url.toString(), {
-      method: 'GET',
-      mode: 'no-cors',
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(event),
+      // Use 'cors' mode as the spec implies a properly configured endpoint.
+      mode: 'cors',
     });
 
-    // Como estamos em modo 'no-cors', não podemos ler a resposta.
-    // Assumimos sucesso e retornamos uma mensagem informativa.
-    // A verificação final deve ser feita na planilha.
-    return { status: 200, body: 'Requisição enviada com sucesso (no-cors). Verifique a planilha.' };
+    const responseBody = await response.text();
+
+    if (!response.ok) {
+      // The server responded with an error status (4xx or 5xx)
+      throw new Error(`Server error: ${response.status} ${response.statusText} - ${responseBody}`);
+    }
+
+    return { status: response.status, body: responseBody };
+
   } catch (error) {
-    console.error('[webhook] Falha de rede ao enviar tarefa via GET:', error);
-    // Mesmo em 'no-cors', erros de rede (ex: sem conexão) podem ocorrer.
-    // Retornamos um status de erro genérico.
-    return { status: 500, body: `Falha de rede: ${error}` };
+    console.error('[webhookService] Failed to post event:', error);
+    if (error instanceof Error) {
+      return Promise.reject(new Error(`Network or CORS error: ${error.message}`));
+    }
+    return Promise.reject(new Error('An unknown error occurred during the webhook call.'));
   }
 };

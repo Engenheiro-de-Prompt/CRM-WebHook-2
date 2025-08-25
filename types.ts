@@ -1,32 +1,58 @@
 
-export enum Status {
-  ToDo = 'A Fazer',
-  InProgress = 'Em Progresso',
-  Done = 'Concluído',
-}
+// --- Interfaces based on the product specification ---
 
-export enum Priority {
-  Low = 'Baixa',
-  Medium = 'Média',
-  High = 'Alta',
-  Urgent = 'Urgente',
-}
+export type TaskStatus = 'backlog' | 'doing' | 'blocked' | 'done';
+export type TaskPriority = 'low' | 'med' | 'high';
 
-export interface CustomField {
-  id: string;
-  key: string;
-  value: string;
-}
-
-export interface Task {
-  id: string;
+export interface ITask {
+  task_id: string; // Primary Key
+  version: number;
   title: string;
-  description: string;
-  status: Status;
-  priority: Priority;
-  tags: string[];
-  customFields: CustomField[];
-  timeSpent: number; // in seconds
-  createdAt: string;
-  updatedAt: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  tags?: string[];
+  folder_id: string; // Foreign Key to IFolder
+  folder_path: string;
+  created_at: string; // ISO Date String
+  updated_at: string; // ISO Date String
+  scheduled_for?: string; // YYYY-MM-DD
+  tracked_total_min: number;
+}
+
+export interface IFolder {
+  folder_id: string; // Primary Key
+  created_at: string; // ISO Date String
+  name: string;
+  path: string; // e.g., "Work/Client X"
+  parent_folder_id?: string; // Optional for root folders
+}
+
+// --- Webhook Event related types ---
+
+export interface ITaskSnapshot {
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  tags?: string[];
+  folder_id: string;
+  folder_path: string;
+  created_at: string;
+  updated_at: string;
+  scheduled_for?: string;
+  tracked_total_min: number;
+}
+
+export interface IWebhookPayload {
+  task_id: string;
+  version: number;
+  snapshot: ITaskSnapshot;
+  change_delta_tracked_min?: number;
+}
+
+export interface IWebhookEvent {
+  event_type: 'task.created' | 'task.updated' | 'folder.created';
+  idempotency_key: string;
+  payload: IWebhookPayload | IFolder;
 }

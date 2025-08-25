@@ -4,9 +4,18 @@ import { TaskContext } from '../context/TaskContext';
 import { STATUSES } from '../constants';
 import KanbanColumn from './KanbanColumn';
 import TaskModal from './TaskModal';
+import { SpinnerIcon } from './Icons';
 
 const KanbanBoard: React.FC = () => {
   const { tasks, isModalOpen, openModal } = useContext(TaskContext);
+
+  if (tasks === undefined) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <SpinnerIcon className="w-10 h-10 text-accent" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col">
