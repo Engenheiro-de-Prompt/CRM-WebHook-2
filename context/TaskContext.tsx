@@ -27,7 +27,7 @@ interface TaskProviderProps {
   tagQuery?: string;
 }
 
-export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl, activeView, tagQuery }) => {
+export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl, activeView = null, tagQuery }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<ITask | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
