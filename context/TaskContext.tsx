@@ -6,7 +6,7 @@ import { postTaskToSheet } from '../services/webhookService';
 
 interface TaskContextType {
   tasks: Task[];
-  saveTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> | Task) => void;
+  saveTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> | Task) => Promise<void>;
   deleteTask: (id: string) => void;
   isModalOpen: boolean;
   currentTask: Task | null;
@@ -43,7 +43,7 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
     setCurrentTask(null);
   }, []);
 
-  const saveTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> | Task) => {
+  const saveTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> | Task) => {
     let taskToSave: Task;
 
     if ('id' in taskData) {
@@ -63,7 +63,17 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
     }
     
     if (webhookUrl) {
-        postTaskToSheet(webhookUrl, taskToSave);
+      console.log('[task] enviando tarefa para webhook', taskToSave);
+      try {
+        await postTaskToSheet(webhookUrl, taskToSave);
+        console.log('[task] tarefa enviada para webhook com sucesso');
+      } catch (error) {
+        // o erro já foi registrado dentro de postTaskToSheet, mas mantemos aqui para rastreabilidade
+        console.error('[task] erro ao postar tarefa no webhook:', error);
+        alert('Falha ao enviar a tarefa para a planilha. Verifique o console para mais detalhes.');
+      }
+    } else {
+      console.warn('[task] webhookUrl não configurado, tarefa não enviada');
     }
 
     closeModal();
