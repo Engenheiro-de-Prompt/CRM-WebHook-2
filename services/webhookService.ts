@@ -27,12 +27,14 @@ export const postTaskToSheet = async (
   // Logs para diagnóstico detalhado
   console.log('[webhook] preparando envio', { webhookUrl, payload });
 
+
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',
       // Alguns webhooks (como Google Apps Script) podem bloquear requisições CORS; o modo
       // 'no-cors' permite que a requisição seja despachada mesmo sem cabeçalhos CORS.
       mode: 'no-cors',
+
       headers: {
         'Content-Type': 'application/json',
       },
@@ -46,6 +48,7 @@ export const postTaskToSheet = async (
     });
   } catch (error) {
     console.error('[webhook] falha de rede ao enviar tarefa', error);
+
     throw error;
   }
 };

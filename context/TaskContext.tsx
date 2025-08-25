@@ -63,6 +63,7 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
     }
     
     if (webhookUrl) {
+
       console.log('[task] enviando tarefa para webhook', taskToSave);
       try {
         await postTaskToSheet(webhookUrl, taskToSave);
@@ -74,6 +75,7 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
       }
     } else {
       console.warn('[task] webhookUrl não configurado, tarefa não enviada');
+
     }
 
     closeModal();
