@@ -5,7 +5,9 @@ import { Task } from '../types';
 export const postTaskToSheet = async (
   webhookUrl: string,
   task: Task,
-): Promise<void> => {
+
+): Promise<{ status: number; body: string }> => {
+
   const payload: Record<string, any> = {
     id: task.id,
     title: task.title,
@@ -21,31 +23,33 @@ export const postTaskToSheet = async (
   task.customFields.forEach((field) => {
     if (field.key.trim()) {
       payload[`custom_${field.key.trim().replace(/\s+/g, '_')}`] = field.value;
+
     }
   });
 
   // Logs para diagnóstico detalhado
   console.log('[webhook] preparando envio', { webhookUrl, payload });
 
-
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      // Alguns webhooks (como Google Apps Script) podem bloquear requisições CORS; o modo
-      // 'no-cors' permite que a requisição seja despachada mesmo sem cabeçalhos CORS.
-      mode: 'no-cors',
-
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
     });
 
-    // Mesmo no modo 'no-cors' registramos o objeto de resposta para investigação.
-    console.log('[webhook] requisição despachada', {
-      type: response.type,
+    const text = await response.text();
+    console.log('[webhook] resposta recebida', {
       status: response.status,
+      body: text,
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} - ${text}`);
+    }
+
+    return { status: response.status, body: text };
   } catch (error) {
     console.error('[webhook] falha de rede ao enviar tarefa', error);
 

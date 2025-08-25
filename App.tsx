@@ -4,6 +4,7 @@ import { TaskProvider } from './context/TaskContext';
 import SettingsModal from './components/SettingsModal';
 import Header from './components/Header';
 import KanbanBoard from './components/KanbanBoard';
+import LogPanel from './components/LogPanel';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
 const App: React.FC = () => {
@@ -59,6 +60,7 @@ const App: React.FC = () => {
             </div>
           )}
         </main>
+        <LogPanel />
       </div>
     </TaskProvider>
   );
