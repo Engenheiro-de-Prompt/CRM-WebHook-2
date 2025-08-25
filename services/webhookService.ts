@@ -5,7 +5,9 @@ import { Task } from '../types';
 export const postTaskToSheet = async (
   webhookUrl: string,
   task: Task,
+
 ): Promise<{ status: number; body: string }> => {
+
   const payload: Record<string, any> = {
     id: task.id,
     title: task.title,
@@ -21,6 +23,7 @@ export const postTaskToSheet = async (
   task.customFields.forEach((field) => {
     if (field.key.trim()) {
       payload[`custom_${field.key.trim().replace(/\s+/g, '_')}`] = field.value;
+
     }
   });
 
@@ -49,6 +52,7 @@ export const postTaskToSheet = async (
     return { status: response.status, body: text };
   } catch (error) {
     console.error('[webhook] falha de rede ao enviar tarefa', error);
+
     throw error;
   }
 };
