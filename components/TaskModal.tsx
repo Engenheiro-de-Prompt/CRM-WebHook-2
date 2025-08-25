@@ -77,10 +77,10 @@ const TaskModal: React.FC = () => {
       setTask(prev => ({...prev, customFields: prev.customFields.filter(f => f.id !== id)}))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (task.title.trim()) {
-        saveTask(task as Task);
+      await saveTask(task as Task);
     }
   };
   
