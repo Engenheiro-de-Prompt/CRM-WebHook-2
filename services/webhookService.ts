@@ -24,26 +24,31 @@ export const postTaskToSheet = async (
     }
   });
 
-  console.debug('Enviando tarefa para webhook', { webhookUrl, payload });
+  // Logs para diagnóstico detalhado
+  console.log('[webhook] preparando envio', { webhookUrl, payload });
+
 
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',
+      // Alguns webhooks (como Google Apps Script) podem bloquear requisições CORS; o modo
+      // 'no-cors' permite que a requisição seja despachada mesmo sem cabeçalhos CORS.
+      mode: 'no-cors',
+
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      const text = await response.text().catch(() => '');
-      console.error('Resposta inválida do webhook', response.status, text);
-      throw new Error(`Webhook respondeu com status ${response.status}`);
-    }
-
-    console.log('Dados da tarefa enviados para o webhook para a tarefa:', task.title);
+    // Mesmo no modo 'no-cors' registramos o objeto de resposta para investigação.
+    console.log('[webhook] requisição despachada', {
+      type: response.type,
+      status: response.status,
+    });
   } catch (error) {
-    console.error('Falha ao enviar a tarefa para o Google Sheet:', error);
+    console.error('[webhook] falha de rede ao enviar tarefa', error);
+
     throw error;
   }
 };

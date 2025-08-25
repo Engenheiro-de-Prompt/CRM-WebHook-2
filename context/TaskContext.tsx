@@ -63,12 +63,19 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
     }
     
     if (webhookUrl) {
+
+      console.log('[task] enviando tarefa para webhook', taskToSave);
       try {
         await postTaskToSheet(webhookUrl, taskToSave);
+        console.log('[task] tarefa enviada para webhook com sucesso');
       } catch (error) {
         // o erro já foi registrado dentro de postTaskToSheet, mas mantemos aqui para rastreabilidade
-        console.error('Erro ao postar tarefa no webhook:', error);
+        console.error('[task] erro ao postar tarefa no webhook:', error);
+        alert('Falha ao enviar a tarefa para a planilha. Verifique o console para mais detalhes.');
       }
+    } else {
+      console.warn('[task] webhookUrl não configurado, tarefa não enviada');
+
     }
 
     closeModal();
