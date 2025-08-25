@@ -47,12 +47,24 @@ export const postTaskToSheet = async (
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status} - ${text}`);
+
     }
 
     return { status: response.status, body: text };
   } catch (error) {
     console.error('[webhook] falha de rede ao enviar tarefa', error);
-
-    throw error;
+    console.log('[webhook] tentando fallback no-cors');
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload),
+      });
+      return { status: 0, body: 'no-cors fallback: resposta indisponível' };
+    } catch (fallbackError) {
+      console.error('[webhook] falha no fallback no-cors', fallbackError);
+      throw fallbackError;
+    }
   }
 };
+
