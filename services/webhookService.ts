@@ -47,18 +47,25 @@ export const postTaskToSheet = async (
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status} - ${text}`);
-
     }
 
     return { status: response.status, body: text };
   } catch (error) {
     console.error('[webhook] falha de rede ao enviar tarefa', error);
-    console.log('[webhook] tentando fallback no-cors');
+    console.log('[webhook] tentando fallback no-cors com form-urlencoded');
     try {
+      const formBody = new URLSearchParams();
+      Object.entries(payload).forEach(([key, value]) => {
+        formBody.append(key, String(value));
+      });
+
       await fetch(webhookUrl, {
         method: 'POST',
         mode: 'no-cors',
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formBody.toString(),
       });
       return { status: 0, body: 'no-cors fallback: resposta indisponível' };
     } catch (fallbackError) {
