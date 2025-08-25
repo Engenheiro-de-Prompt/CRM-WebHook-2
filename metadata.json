@@ -1,0 +1,6 @@
+
+{
+  "name": "IntelliTask CRM",
+  "description": "Um aplicativo inteligente de gerenciamento de tarefas e CRM com uma elegante interface em modo escuro, projetado para organização intuitiva do fluxo de trabalho. Ele se conecta a um webhook do Google Sheets para registro de dados.",
+  "requestFramePermissions": []
+}
