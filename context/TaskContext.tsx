@@ -74,19 +74,23 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         addLog('Aviso: navegador offline, tentativa de envio mesmo assim.');
       }
+
       try {
         const result = await postTaskToSheet(webhookUrl, taskToSave);
         addLog(`Webhook respondeu (${result.status}): ${result.body}`);
       } catch (error: any) {
+
         const msg = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
         addLog(`Erro ao enviar tarefa: ${msg}`);
         if (error instanceof Error && error.stack) {
           addLog(error.stack);
         }
+
         alert('Falha ao enviar a tarefa para a planilha. Verifique os logs para mais detalhes.');
       }
     } else {
       addLog('Webhook não configurado. Tarefa salva apenas localmente.');
+
     }
 
     closeModal();
