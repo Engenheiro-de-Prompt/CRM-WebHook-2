@@ -12,8 +12,6 @@ interface TaskContextType {
   currentTask: Task | null;
   openModal: (task?: Task) => void;
   closeModal: () => void;
-  logs: string[];
-  addLog: (message: string) => void;
 }
 
 export const TaskContext = createContext<TaskContextType>({} as TaskContextType);
@@ -27,11 +25,6 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
   const [tasks, setTasks] = useLocalStorage<Task[]>('tasks', []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
-  const [logs, setLogs] = useState<string[]>([]);
-
-  const addLog = useCallback((message: string) => {
-    setLogs(prev => [...prev.slice(-50), `${new Date().toISOString()} - ${message}`]);
-  }, []);
 
   // Clear tasks if webhookUrl is cleared
   useEffect(() => {
@@ -70,31 +63,31 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
     }
     
     if (webhookUrl) {
-      addLog(`Enviando tarefa para webhook (${webhookUrl}): ${taskToSave.title}`);
+      console.debug(`Enviando tarefa para webhook (${webhookUrl}): ${taskToSave.title}`);
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        addLog('Aviso: navegador offline, tentativa de envio mesmo assim.');
+        console.warn('Aviso: navegador offline, tentativa de envio mesmo assim.');
       }
 
       try {
         const result = await postTaskToSheet(webhookUrl, taskToSave);
-        addLog(`Webhook respondeu (${result.status}): ${result.body}`);
+        console.debug(`Webhook respondeu (${result.status}): ${result.body}`);
       } catch (error: any) {
 
         const msg = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-        addLog(`Erro ao enviar tarefa: ${msg}`);
+        console.error(`Erro ao enviar tarefa: ${msg}`);
         if (error instanceof Error && error.stack) {
-          addLog(error.stack);
+          console.error(error.stack);
         }
 
-        alert('Falha ao enviar a tarefa para a planilha. Verifique os logs para mais detalhes.');
+        alert('Falha ao enviar a tarefa para a planilha.');
       }
     } else {
-      addLog('Webhook não configurado. Tarefa salva apenas localmente.');
+      console.debug('Webhook não configurado. Tarefa salva apenas localmente.');
 
     }
 
     closeModal();
-  }, [setTasks, closeModal, webhookUrl, addLog]);
+  }, [setTasks, closeModal, webhookUrl]);
 
   const deleteTask = useCallback((id: string) => {
     setTasks(prevTasks => prevTasks.filter(t => t.id !== id));
@@ -105,7 +98,7 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children, webhookUrl
   }, [setTasks, closeModal]);
 
   return (
-    <TaskContext.Provider value={{ tasks, saveTask, deleteTask, isModalOpen, currentTask, openModal, closeModal, logs, addLog }}>
+    <TaskContext.Provider value={{ tasks, saveTask, deleteTask, isModalOpen, currentTask, openModal, closeModal }}>
       {children}
     </TaskContext.Provider>
   );
