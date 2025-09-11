@@ -30,3 +30,16 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
 }
+
+// Represents a task as it comes from the Google Sheet via the backend API.
+// It's a flexible record of string key-value pairs.
+export interface SheetTask {
+  [key: string]: string;
+}
+
+// Represents the structure of the API response from the backend.
+export interface CategorizedTasks {
+  today: SheetTask[];
+  overdue: SheetTask[];
+  upcoming: SheetTask[];
+}
